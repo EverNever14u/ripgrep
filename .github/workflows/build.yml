@@ -38,6 +38,11 @@ jobs:
       - name: Install cargo-deb
         run: cargo install cargo-deb
 
+      - name: Fix missing manpage asset
+        run: |
+          mkdir -p deployment/deb
+          cp doc/rg.1 deployment/deb/rg.1 2>/dev/null || touch deployment/deb/rg.1   
+
       - name: Build .deb
         run: cargo deb --no-build      
 
