@@ -1,0 +1,50 @@
+name: build-ino-dev
+
+on:
+  push:
+    branches: [ ino_dev ]
+  pull_request:
+    branches: [ ino_dev ]
+  workflow_dispatch:        
+
+permissions:
+  contents: read            
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Toolchain info
+        run: rustc --version && cargo --version   
+
+      - name: Build (release)
+        run: cargo build --release --locked
+
+      - name: Smoke test
+        run: ./target/release/rg --version
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: rg-linux-x86_64
+          path: target/release/rg
+          if-no-files-found: error
+          retention-days: 7
+
+   
+      - name: Install cargo-deb
+        run: cargo install cargo-deb
+
+      - name: Build .deb
+        run: cargo deb --no-build      
+
+      - name: Upload .deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: ripgrep-deb
+          path: target/debian/*.deb
+          if-no-files-found: error
+          retention-days: 7
